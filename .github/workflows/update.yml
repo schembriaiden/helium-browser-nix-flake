@@ -1,0 +1,68 @@
+name: Update Helium
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Daily at midnight
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
+
+      - name: Update version and hashes
+        run: |
+          LATEST_VERSION=$(curl -s https://api.github.com/repos/imputnet/helium-linux/releases/latest | jq -r .tag_name)
+          CURRENT_VERSION=$(grep -oP 'version = "\K[^"]+' flake.nix)
+
+          if [ "$LATEST_VERSION" == "$CURRENT_VERSION" ]; then
+            echo "Already at the latest version: $LATEST_VERSION"
+            exit 0
+          fi
+
+          echo "Updating from $CURRENT_VERSION to $LATEST_VERSION"
+
+          # Update version in flake.nix
+          sed -i "s/version = \"$CURRENT_VERSION\"/version = \"$LATEST_VERSION\"/g" flake.nix
+
+          # Fetch new hashes
+          X86_URL="https://github.com/imputnet/helium-linux/releases/download/${LATEST_VERSION}/helium-${LATEST_VERSION}-x86_64_linux.tar.xz"
+          ARM_URL="https://github.com/imputnet/helium-linux/releases/download/${LATEST_VERSION}/helium-${LATEST_VERSION}-arm64_linux.tar.xz"
+
+          echo "Fetching hash for x86_64-linux..."
+          X86_HASH=$(nix-prefetch-url "$X86_URL")
+          echo "Fetching hash for aarch64-linux..."
+          ARM_HASH=$(nix-prefetch-url "$ARM_URL")
+
+          # Update hashes in flake.nix
+          sed -i "/x86_64-linux = {/,/sha256 =/ s/sha256 = \"[^\"]*\"/sha256 = \"$X86_HASH\"/" flake.nix
+          sed -i "/aarch64-linux = {/,/sha256 =/ s/sha256 = \"[^\"]*\"/sha256 = \"$ARM_HASH\"/" flake.nix
+
+      - name: Verify flake
+        run: nix flake check
+
+      - name: Check for changes
+        id: git-check
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push changes
+        if: steps.git-check.outputs.changed == 'true'
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add flake.nix
+          VERSION=$(grep -oP 'version = "\K[^"]+' flake.nix)
+          git commit -m "chore: update helium to $VERSION"
+          git push
