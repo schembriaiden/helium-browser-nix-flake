@@ -113,9 +113,13 @@
 
             mkdir -p $out/Applications/Helium.app
             cp -r . $out/Applications/Helium.app
-            
+
             mkdir -p $out/bin
-            makeWrapper $out/Applications/Helium.app/Contents/MacOS/Helium $out/bin/helium
+            makeWrapper $out/Applications/Helium.app/Contents/MacOS/Helium $out/bin/helium \
+              --add-flags "--disable-component-update" \
+              --add-flags "--simulate-outdated-no-au='Tue, 31 Dec 2099 23:59:59 GMT'" \
+              --add-flags "--check-for-update-interval=0" \
+              --add-flags "--disable-background-networking"
 
             runHook postInstall
           '' else ''
@@ -132,7 +136,11 @@
                 libva
               ])}" \
               --add-flags "--ozone-platform-hint=auto" \
-              --add-flags "--enable-features=WaylandWindowDecorations"
+              --add-flags "--enable-features=WaylandWindowDecorations" \
+              --add-flags "--disable-component-update" \
+              --add-flags "--simulate-outdated-no-au='Tue, 31 Dec 2099 23:59:59 GMT'" \
+              --add-flags "--check-for-update-interval=0" \
+              --add-flags "--disable-background-networking"
 
             # Install icon
             mkdir -p $out/share/icons/hicolor/256x256/apps
