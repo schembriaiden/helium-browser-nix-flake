@@ -47,8 +47,12 @@
             autoPatchelfHook
             copyDesktopItems
           ] ++ pkgs.lib.optionals stdenv.isDarwin [
-            undmg
+            _7zz
           ];
+
+          unpackCmd = pkgs.lib.optionalString pkgs.stdenv.isDarwin ''
+            7zz x $src
+          '';
 
           buildInputs = with pkgs; pkgs.lib.optionals stdenv.isLinux [
             alsa-lib
