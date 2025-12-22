@@ -19,19 +19,19 @@
         srcs = {
           x86_64-linux = {
             url = "https://github.com/imputnet/helium-linux/releases/download/${version}/helium-${version}-x86_64_linux.tar.xz";
-            sha256 = "sha256-aY9GwIDPTcskm55NluSyxkCHC6drd6BdBaNYZhrzlRE=";
+            hash = "sha256-aY9GwIDPTcskm55NluSyxkCHC6drd6BdBaNYZhrzlRE=";
           };
           aarch64-linux = {
             url = "https://github.com/imputnet/helium-linux/releases/download/${version}/helium-${version}-arm64_linux.tar.xz";
-            sha256 = "sha256-76hJ19/bHzdE1//keGF9imYkMHOy6VHpA56bxEkgwgA=";
+            hash = "sha256-76hJ19/bHzdE1//keGF9imYkMHOy6VHpA56bxEkgwgA=";
           };
           x86_64-darwin = {
             url = "https://github.com/imputnet/helium-macos/releases/download/${version}/helium_${version}_x86_64-macos.dmg";
-            sha256 = "sha256-LtxzeBkECRML+q+qtcTljuFoPefuZdk1PIcdDqSGl0Y=";
+            hash = "sha256-LtxzeBkECRML+q+qtcTljuFoPefuZdk1PIcdDqSGl0Y=";
           };
           aarch64-darwin = {
             url = "https://github.com/imputnet/helium-macos/releases/download/${version}/helium_${version}_arm64-macos.dmg";
-            sha256 = "sha256-iFE2OigeG+sDfGKmuqqb6LKUyxhZ2Jcti+jLzeHMLYM=";
+            hash = "sha256-iFE2OigeG+sDfGKmuqqb6LKUyxhZ2Jcti+jLzeHMLYM=";
           };
         };
 
