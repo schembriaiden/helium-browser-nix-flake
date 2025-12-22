@@ -19,11 +19,19 @@
         srcs = {
           x86_64-linux = {
             url = "https://github.com/imputnet/helium-linux/releases/download/${version}/helium-${version}-x86_64_linux.tar.xz";
-            sha256 = "sha256-aY9GwIDPTcskm55NluSyxkCHC6drd6BdBaNYZhrzlRE=";
+            hash = "sha256-aY9GwIDPTcskm55NluSyxkCHC6drd6BdBaNYZhrzlRE=";
           };
           aarch64-linux = {
             url = "https://github.com/imputnet/helium-linux/releases/download/${version}/helium-${version}-arm64_linux.tar.xz";
-            sha256 = "sha256-76hJ19/bHzdE1//keGF9imYkMHOy6VHpA56bxEkgwgA=";
+            hash = "sha256-76hJ19/bHzdE1//keGF9imYkMHOy6VHpA56bxEkgwgA=";
+          };
+          x86_64-darwin = {
+            url = "https://github.com/imputnet/helium-macos/releases/download/${version}/helium_${version}_x86_64-macos.dmg";
+            hash = "sha256-LtxzeBkECRML+q+qtcTljuFoPefuZdk1PIcdDqSGl0Y=";
+          };
+          aarch64-darwin = {
+            url = "https://github.com/imputnet/helium-macos/releases/download/${version}/helium_${version}_arm64-macos.dmg";
+            hash = "sha256-iFE2OigeG+sDfGKmuqqb6LKUyxhZ2Jcti+jLzeHMLYM=";
           };
         };
 
@@ -34,12 +42,19 @@
           src = pkgs.fetchurl (srcs.${system} or (throw "Unsupported system: ${system}"));
 
           nativeBuildInputs = with pkgs; [
-            autoPatchelfHook
             makeWrapper
+          ] ++ pkgs.lib.optionals stdenv.isLinux [
+            autoPatchelfHook
             copyDesktopItems
+          ] ++ pkgs.lib.optionals stdenv.isDarwin [
+            _7zz
           ];
 
-          buildInputs = with pkgs; [
+          unpackCmd = pkgs.lib.optionalString pkgs.stdenv.isDarwin ''
+            7zz x $src
+          '';
+
+          buildInputs = with pkgs; pkgs.lib.optionals stdenv.isLinux [
             alsa-lib
             at-spi2-atk
             at-spi2-core
@@ -82,7 +97,7 @@
             kdePackages.qtbase
           ];
 
-          autoPatchelfIgnoreMissingDeps = [
+          autoPatchelfIgnoreMissingDeps = pkgs.lib.optionals pkgs.stdenv.isLinux [
             "libQt6Core.so.6"
             "libQt6Gui.so.6"
             "libQt6Widgets.so.6"
@@ -91,9 +106,23 @@
             "libQt5Widgets.so.5"
           ];
 
-          dontWrapQtApps = true;
+          dontWrapQtApps = pkgs.stdenv.isLinux;
 
-          installPhase = ''
+          installPhase = if pkgs.stdenv.isDarwin then ''
+            runHook preInstall
+
+            mkdir -p $out/Applications/Helium.app
+            cp -r . $out/Applications/Helium.app
+
+            mkdir -p $out/bin
+            makeWrapper $out/Applications/Helium.app/Contents/MacOS/Helium $out/bin/helium \
+              --add-flags "--disable-component-update" \
+              --add-flags "--simulate-outdated-no-au='Tue, 31 Dec 2099 23:59:59 GMT'" \
+              --add-flags "--check-for-update-interval=0" \
+              --add-flags "--disable-background-networking"
+
+            runHook postInstall
+          '' else ''
             runHook preInstall
 
             mkdir -p $out/bin $out/opt/helium
@@ -107,7 +136,11 @@
                 libva
               ])}" \
               --add-flags "--ozone-platform-hint=auto" \
-              --add-flags "--enable-features=WaylandWindowDecorations"
+              --add-flags "--enable-features=WaylandWindowDecorations" \
+              --add-flags "--disable-component-update" \
+              --add-flags "--simulate-outdated-no-au='Tue, 31 Dec 2099 23:59:59 GMT'" \
+              --add-flags "--check-for-update-interval=0" \
+              --add-flags "--disable-background-networking"
 
             # Install icon
             mkdir -p $out/share/icons/hicolor/256x256/apps
@@ -116,7 +149,7 @@
             runHook postInstall
           '';
 
-          desktopItems = [
+          desktopItems = pkgs.lib.optionals pkgs.stdenv.isLinux [
             (pkgs.makeDesktopItem {
               name = "helium";
               exec = "helium %U";
@@ -133,8 +166,16 @@
             description = "Private, fast, and honest web browser based on ungoogled-chromium";
             homepage = "https://helium.computer/";
             license = licenses.gpl3Only;
-            platforms = [ "x86_64-linux" "aarch64-linux" ];
+            platforms = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
             mainProgram = "helium";
+          };
+        };
+
+        app = {
+          type = "app";
+          program = "${helium}/bin/helium";
+          meta = {
+            inherit (helium.meta) description homepage license platforms;
           };
         };
       in
@@ -142,8 +183,8 @@
         packages.default = helium;
         packages.helium = helium;
 
-        apps.default = utils.lib.mkApp { drv = helium; };
-        apps.helium = utils.lib.mkApp { drv = helium; };
+        apps.default = app;
+        apps.helium = app;
 
         devShells.default = pkgs.mkShell {
           buildInputs = [ helium ];
