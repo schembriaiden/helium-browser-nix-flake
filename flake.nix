@@ -25,6 +25,14 @@
             url = "https://github.com/imputnet/helium-linux/releases/download/${version}/helium-${version}-arm64_linux.tar.xz";
             sha256 = "sha256-76hJ19/bHzdE1//keGF9imYkMHOy6VHpA56bxEkgwgA=";
           };
+          x86_64-darwin = {
+            url = "https://github.com/imputnet/helium-macos/releases/download/${version}/helium_${version}_x86_64-macos.dmg";
+            sha256 = "sha256-LtxzeBkECRML+q+qtcTl7uFoM97uZdU1PIcdDqhpd0Y=";
+          };
+          aarch64-darwin = {
+            url = "https://github.com/imputnet/helium-macos/releases/download/${version}/helium_${version}_arm64-macos.dmg";
+            sha256 = "sha256-iFE2OigeG+sDzGKmuqqb6LKUyxiZ2JfTi+jLzeHMLYM=";
+          };
         };
 
         helium = pkgs.stdenv.mkDerivation {
@@ -34,12 +42,15 @@
           src = pkgs.fetchurl (srcs.${system} or (throw "Unsupported system: ${system}"));
 
           nativeBuildInputs = with pkgs; [
-            autoPatchelfHook
             makeWrapper
+          ] ++ pkgs.lib.optionals stdenv.isLinux [
+            autoPatchelfHook
             copyDesktopItems
+          ] ++ pkgs.lib.optionals stdenv.isDarwin [
+            undmg
           ];
 
-          buildInputs = with pkgs; [
+          buildInputs = with pkgs; pkgs.lib.optionals stdenv.isLinux [
             alsa-lib
             at-spi2-atk
             at-spi2-core
@@ -82,7 +93,7 @@
             kdePackages.qtbase
           ];
 
-          autoPatchelfIgnoreMissingDeps = [
+          autoPatchelfIgnoreMissingDeps = pkgs.lib.optionals pkgs.stdenv.isLinux [
             "libQt6Core.so.6"
             "libQt6Gui.so.6"
             "libQt6Widgets.so.6"
@@ -91,9 +102,18 @@
             "libQt5Widgets.so.5"
           ];
 
-          dontWrapQtApps = true;
+          dontWrapQtApps = pkgs.stdenv.isLinux;
 
-          installPhase = ''
+          installPhase = if pkgs.stdenv.isDarwin then ''
+            runHook preInstall
+
+            mkdir -p $out/Applications
+            cp -r Helium.app $out/Applications
+            
+            makeWrapper $out/Applications/Helium.app/Contents/MacOS/Helium $out/bin/helium
+
+            runHook postInstall
+          '' else ''
             runHook preInstall
 
             mkdir -p $out/bin $out/opt/helium
@@ -116,7 +136,7 @@
             runHook postInstall
           '';
 
-          desktopItems = [
+          desktopItems = pkgs.lib.optionals pkgs.stdenv.isLinux [
             (pkgs.makeDesktopItem {
               name = "helium";
               exec = "helium %U";
@@ -133,8 +153,16 @@
             description = "Private, fast, and honest web browser based on ungoogled-chromium";
             homepage = "https://helium.computer/";
             license = licenses.gpl3Only;
-            platforms = [ "x86_64-linux" "aarch64-linux" ];
+            platforms = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
             mainProgram = "helium";
+          };
+        };
+
+        app = {
+          type = "app";
+          program = "${helium}/bin/helium";
+          meta = {
+            inherit (helium.meta) description homepage license platforms;
           };
         };
       in
@@ -142,8 +170,8 @@
         packages.default = helium;
         packages.helium = helium;
 
-        apps.default = utils.lib.mkApp { drv = helium; };
-        apps.helium = utils.lib.mkApp { drv = helium; };
+        apps.default = app;
+        apps.helium = app;
 
         devShells.default = pkgs.mkShell {
           buildInputs = [ helium ];

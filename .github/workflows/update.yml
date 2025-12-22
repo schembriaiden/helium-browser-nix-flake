@@ -54,14 +54,20 @@ jobs:
           # 5. Fetch new hashes and convert to SRI format
           X86_URL="https://github.com/imputnet/helium-linux/releases/download/${LATEST_VERSION}/helium-${LATEST_VERSION}-x86_64_linux.tar.xz"
           ARM_URL="https://github.com/imputnet/helium-linux/releases/download/${LATEST_VERSION}/helium-${LATEST_VERSION}-arm64_linux.tar.xz"
+          X86_DARWIN_URL="https://github.com/imputnet/helium-macos/releases/download/${LATEST_VERSION}/helium_${LATEST_VERSION}_x86_64-macos.dmg"
+          ARM_DARWIN_URL="https://github.com/imputnet/helium-macos/releases/download/${LATEST_VERSION}/helium_${LATEST_VERSION}_arm64-macos.dmg"
 
           echo "Fetching hashes..."
           X86_HASH=$(nix hash to-sri --type sha256 $(nix-prefetch-url "$X86_URL"))
           ARM_HASH=$(nix hash to-sri --type sha256 $(nix-prefetch-url "$ARM_URL"))
+          X86_DARWIN_HASH=$(nix hash to-sri --type sha256 $(nix-prefetch-url "$X86_DARWIN_URL"))
+          ARM_DARWIN_HASH=$(nix hash to-sri --type sha256 $(nix-prefetch-url "$ARM_DARWIN_URL"))
 
           # 6. Update hashes using safer delimiters
           sed -i "/x86_64-linux = {/,/sha256 =/ s|sha256 = \"[^\"]*\"|sha256 = \"$X86_HASH\"|" flake.nix
           sed -i "/aarch64-linux = {/,/sha256 =/ s|sha256 = \"[^\"]*\"|sha256 = \"$ARM_HASH\"|" flake.nix
+          sed -i "/x86_64-darwin = {/,/sha256 =/ s|sha256 = \"[^\"]*\"|sha256 = \"$X86_DARWIN_HASH\"|" flake.nix
+          sed -i "/aarch64-darwin = {/,/sha256 =/ s|sha256 = \"[^\"]*\"|sha256 = \"$ARM_DARWIN_HASH\"|" flake.nix
 
       - name: Update flake inputs
         if: steps.update-check.outputs.update_needed == 'true'
@@ -69,7 +75,7 @@ jobs:
 
       - name: Verify flake
         if: steps.update-check.outputs.update_needed == 'true'
-        run: nix flake check
+        run: nix flake check --all-systems
 
       - name: Check for changes
         if: steps.update-check.outputs.update_needed == 'true'
