@@ -18,7 +18,7 @@
           config.allowUnfree = true;
         };
 
-        version = "0.7.7.2";
+        version = "0.7.7.1";
 
         srcs = {
           x86_64-linux = {
