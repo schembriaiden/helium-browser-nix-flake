@@ -17,7 +17,10 @@ nix run github:vikingnope/helium-browser-nix-flake
 Add this flake to your inputs:
 
 ```nix
-inputs.helium.url = "github:vikingnope/helium-browser-nix-flake";
+inputs.helium = {
+  url = "github:vikingnope/helium-browser-nix-flake";
+  inputs.nixpkgs.follows = "nixpkgs";
+};
 ```
 
 Then add it to your packages:
