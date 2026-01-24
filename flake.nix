@@ -102,6 +102,7 @@
               nspr
               nss
               pango
+              pipewire
               systemd
               vulkan-loader
               wayland
@@ -150,6 +151,7 @@
                 libGL
                 libvdpau
                 libva
+                pipewire
               ])}" \
                 --add-flags "--ozone-platform-hint=auto" \
                 --add-flags "--enable-features=WaylandWindowDecorations" \
