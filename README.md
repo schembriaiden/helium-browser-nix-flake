@@ -9,7 +9,7 @@ A standalone Nix flake for the [Helium browser](https://helium.computer/), a pri
 You can run Helium directly without installing it:
 
 ```bash
-nix run github:vikingnope/helium-browser-nix-flake
+nix run github:schembriaiden/helium-browser-nix-flake
 ```
 
 ### Install in NixOS or Home Manager
@@ -18,7 +18,7 @@ Add this flake to your inputs:
 
 ```nix
 inputs.helium = {
-  url = "github:vikingnope/helium-browser-nix-flake";
+  url = "github:schembriaiden/helium-browser-nix-flake";
   inputs.nixpkgs.follows = "nixpkgs";
 };
 ```
