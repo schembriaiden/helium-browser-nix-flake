@@ -209,5 +209,10 @@
           buildInputs = [helium];
         };
       }
-    );
+    )
+    // {
+      overlays.default = final: prev: {
+        helium = self.packages.${prev.stdenv.hostPlatform.system}.default;
+      };
+    };
 }

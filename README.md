@@ -31,6 +31,24 @@ environment.systemPackages = [
 ];
 ```
 
+### Using the overlay
+
+You can also apply the overlay so `pkgs.helium` is available directly:
+
+```nix
+nixpkgs.overlays = [
+  inputs.helium.overlays.default
+];
+```
+
+Then use it anywhere as `pkgs.helium`:
+
+```nix
+environment.systemPackages = with pkgs; [
+  helium
+];
+```
+
 ## Development
 
 To build the package locally:
