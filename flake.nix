@@ -27,7 +27,7 @@
           darwin = "0.15.5.1";
         };
 
-        version = if pkgs.stdenv.isDarwin then versions.darwin else versions.linux;
+        version = if pkgs.stdenv.hostPlatform.isDarwin then versions.darwin else versions.linux;
 
         srcs = {
           x86_64-linux = {
@@ -58,20 +58,20 @@
             [
               makeWrapper
             ]
-            ++ pkgs.lib.optionals stdenv.isLinux [
+            ++ pkgs.lib.optionals stdenv.hostPlatform.isLinux [
               autoPatchelfHook
               copyDesktopItems
             ]
-            ++ pkgs.lib.optionals stdenv.isDarwin [
+            ++ pkgs.lib.optionals stdenv.hostPlatform.isDarwin [
               _7zz
             ];
 
-          unpackCmd = pkgs.lib.optionalString pkgs.stdenv.isDarwin ''
+          unpackCmd = pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
             7zz x $src
           '';
 
           buildInputs = with pkgs;
-            pkgs.lib.optionals stdenv.isLinux [
+            pkgs.lib.optionals stdenv.hostPlatform.isLinux [
               alsa-lib
               at-spi2-atk
               at-spi2-core
@@ -115,7 +115,7 @@
               kdePackages.qtbase
             ];
 
-          autoPatchelfIgnoreMissingDeps = pkgs.lib.optionals pkgs.stdenv.isLinux [
+          autoPatchelfIgnoreMissingDeps = pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [
             "libQt6Core.so.6"
             "libQt6Gui.so.6"
             "libQt6Widgets.so.6"
@@ -124,10 +124,10 @@
             "libQt5Widgets.so.5"
           ];
 
-          dontWrapQtApps = pkgs.stdenv.isLinux;
+          dontWrapQtApps = pkgs.stdenv.hostPlatform.isLinux;
 
           installPhase =
-            if pkgs.stdenv.isDarwin
+            if pkgs.stdenv.hostPlatform.isDarwin
             then ''
               runHook preInstall
 
@@ -173,7 +173,7 @@
               runHook postInstall
             '';
 
-          desktopItems = pkgs.lib.optionals pkgs.stdenv.isLinux [
+          desktopItems = pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [
             (pkgs.makeDesktopItem {
               name = "helium";
               exec = "helium %U";
