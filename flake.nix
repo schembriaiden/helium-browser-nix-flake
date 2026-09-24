@@ -131,8 +131,20 @@
             then ''
               runHook preInstall
 
-              mkdir -p $out/Applications/Helium.app
-              cp -r . $out/Applications/Helium.app
+              mkdir -p $out/Applications
+              # Since 0.17.2.1 the DMG extracts as a `Helium/` volume directory
+              # containing `Helium.app` (plus an `Applications` symlink and
+              # `.background`). Older DMGs extracted `Helium.app` directly, so
+              # the source root was the bundle itself. Handle both layouts.
+              if [ -d Helium.app ]; then
+                cp -R Helium.app $out/Applications/Helium.app
+              elif [ -d Contents ]; then
+                cp -R . $out/Applications/Helium.app
+              else
+                echo "Could not find Helium.app in the extracted DMG:" >&2
+                ls -la >&2
+                exit 1
+              fi
 
               mkdir -p $out/bin
               makeWrapper $out/Applications/Helium.app/Contents/MacOS/Helium $out/bin/helium \
