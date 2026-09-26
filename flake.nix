@@ -132,7 +132,7 @@
               runHook preInstall
 
               mkdir -p $out/Applications/Helium.app
-              cp -r . $out/Applications/Helium.app
+              cp -r Helium.app/. "$out/Applications/Helium.app"
 
               mkdir -p $out/bin
               makeWrapper $out/Applications/Helium.app/Contents/MacOS/Helium $out/bin/helium \
