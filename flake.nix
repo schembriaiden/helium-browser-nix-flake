@@ -135,11 +135,10 @@
               cp -r Helium.app/. "$out/Applications/Helium.app"
 
               mkdir -p $out/bin
+              # Override only the browser updater's feed. The shared updates
+              # preference also controls CRLSet, so it must remain available.
               makeWrapper $out/Applications/Helium.app/Contents/MacOS/Helium $out/bin/helium \
-                --add-flags "--disable-component-update" \
-                --add-flags "--simulate-outdated-no-au='Tue, 31 Dec 2099 23:59:59 GMT'" \
-                --add-flags "--check-for-update-interval=0" \
-                --add-flags "--disable-background-networking"
+                --add-flags "--custom-update-server-url=about:blank"
 
               runHook postInstall
             ''
@@ -160,11 +159,7 @@
                 libpulseaudio
               ])}" \
                 --add-flags "--ozone-platform-hint=auto" \
-                --add-flags "--enable-features=WaylandWindowDecorations" \
-                --add-flags "--disable-component-update" \
-                --add-flags "--simulate-outdated-no-au='Tue, 31 Dec 2099 23:59:59 GMT'" \
-                --add-flags "--check-for-update-interval=0" \
-                --add-flags "--disable-background-networking"
+                --add-flags "--enable-features=WaylandWindowDecorations"
 
               # Install icon
               mkdir -p $out/share/icons/hicolor/256x256/apps
