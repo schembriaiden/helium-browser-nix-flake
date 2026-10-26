@@ -158,6 +158,7 @@
                 alsa-lib
                 libpulseaudio
               ])}" \
+                --prefix QT_PLUGIN_PATH : "${pkgs.kdePackages.qtbase}/${pkgs.kdePackages.qtbase.qtPluginPrefix}" \
                 --add-flags "--ozone-platform-hint=auto" \
                 --add-flags "--enable-features=WaylandWindowDecorations"
 
