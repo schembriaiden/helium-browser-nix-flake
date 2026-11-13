@@ -9,15 +9,8 @@ A standalone Nix flake for the [Helium browser](https://helium.computer/), a pri
 | Linux | x86-64 (Intel/AMD) | `x86_64-linux` | `nixos-unstable` |
 | Linux | ARM64 | `aarch64-linux` | `nixos-unstable` |
 | macOS | Apple Silicon | `aarch64-darwin` | `nixos-unstable` |
-| macOS | Intel (legacy support) | `x86_64-darwin` | `nixpkgs-26.05-darwin` |
 
-Intel macOS uses a separate `nixpkgs-darwin` input to keep existing users
-working after support was removed from nixpkgs unstable and 26.11. Nixpkgs
-26.05 is the last release supporting Intel macOS and receives platform support
-and binary builds through the end of 2026; its maintenance period ends on
-December 31, 2026. See the [NixOS 26.05 announcement](https://nixos.org/blog/announcements/2026/nixos-2605/).
-This is a compatibility bridge, and continued Intel macOS support after that
-date is not guaranteed.
+Intel macOS is no longer supported.
 
 ## Usage
 

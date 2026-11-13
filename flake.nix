@@ -3,21 +3,17 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    # nixpkgs 26.11 and later no longer support x86_64-darwin. Keep that
-    # platform available with the supported Darwin maintenance branch.
-    nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-26.05-darwin";
     utils.url = "github:numtide/flake-utils";
   };
 
   outputs = {
     self,
     nixpkgs,
-    nixpkgs-darwin,
     utils,
   }:
-    utils.lib.eachDefaultSystem (
+    utils.lib.eachSystem ["x86_64-linux" "aarch64-linux" "aarch64-darwin"] (
       system: let
-        pkgs = import (if system == "x86_64-darwin" then nixpkgs-darwin else nixpkgs) {
+        pkgs = import nixpkgs {
           inherit system;
           config.allowUnfree = true;
         };
@@ -37,10 +33,6 @@
           aarch64-linux = {
             url = "https://github.com/imputnet/helium-linux/releases/download/${versions.linux}/helium-${versions.linux}-arm64_linux.tar.xz";
             hash = "sha256-cguQtVwZDCUGnSRD8SGgw8T+5wVWQGDXuNPyGaqeHvA=";
-          };
-          x86_64-darwin = {
-            url = "https://github.com/imputnet/helium-macos/releases/download/${versions.darwin}/helium_${versions.darwin}_x86_64-macos.dmg";
-            hash = "sha256-re44nDAupBRLKhx/1hMGhgCo+NWsXe9kew3YWPEiiAE=";
           };
           aarch64-darwin = {
             url = "https://github.com/imputnet/helium-macos/releases/download/${versions.darwin}/helium_${versions.darwin}_arm64-macos.dmg";
@@ -187,7 +179,7 @@
             description = "Private, fast, and honest web browser";
             homepage = "https://helium.computer/";
             license = licenses.gpl3Only;
-            platforms = ["x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin"];
+            platforms = ["x86_64-linux" "aarch64-linux" "aarch64-darwin"];
             mainProgram = "helium";
           };
         };

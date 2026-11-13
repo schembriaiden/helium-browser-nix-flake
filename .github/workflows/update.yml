@@ -64,20 +64,17 @@ jobs:
           echo "Checking for macOS updates..."
           LATEST_DARWIN_VERSION=$(curl --fail --silent --show-error -H "Authorization: Bearer $GH_TOKEN" \
             https://api.github.com/repos/imputnet/helium-macos/releases/latest | jq -er '.tag_name | select(type == "string" and length > 0)')
-          CURRENT_DARWIN_VERSION=$(nix eval --raw .#packages.x86_64-darwin.helium.version)
+          CURRENT_DARWIN_VERSION=$(nix eval --raw .#packages.aarch64-darwin.helium.version)
 
           if [ "$LATEST_DARWIN_VERSION" != "$CURRENT_DARWIN_VERSION" ]; then
             echo "Updating macOS from $CURRENT_DARWIN_VERSION to $LATEST_DARWIN_VERSION"
             sed -i "/darwin = \"/ s/darwin = \"$CURRENT_DARWIN_VERSION\"/darwin = \"$LATEST_DARWIN_VERSION\"/" flake.nix
             
-            X86_DARWIN_URL="https://github.com/imputnet/helium-macos/releases/download/${LATEST_DARWIN_VERSION}/helium_${LATEST_DARWIN_VERSION}_x86_64-macos.dmg"
             ARM_DARWIN_URL="https://github.com/imputnet/helium-macos/releases/download/${LATEST_DARWIN_VERSION}/helium_${LATEST_DARWIN_VERSION}_arm64-macos.dmg"
             
             echo "Fetching macOS hashes..."
-            X86_DARWIN_HASH=$(nix hash convert --to sri --hash-algo sha256 "$(nix-prefetch-url "$X86_DARWIN_URL")")
             ARM_DARWIN_HASH=$(nix hash convert --to sri --hash-algo sha256 "$(nix-prefetch-url "$ARM_DARWIN_URL")")
             
-            sed -i "/x86_64-darwin = {/,/hash =/ s|hash = \"[^\"]*\"|hash = \"$X86_DARWIN_HASH\"|" flake.nix
             sed -i "/aarch64-darwin = {/,/hash =/ s|hash = \"[^\"]*\"|hash = \"$ARM_DARWIN_HASH\"|" flake.nix
             UPDATE_NEEDED=true
           else
@@ -158,7 +155,7 @@ jobs:
           git config user.email "$BOT_ID+$BOT_LOGIN@users.noreply.github.com"
           git add flake.nix flake.lock
           LINUX_V=$(nix eval --raw .#packages.x86_64-linux.helium.version)
-          DARWIN_V=$(nix eval --raw .#packages.x86_64-darwin.helium.version)
+          DARWIN_V=$(nix eval --raw .#packages.aarch64-darwin.helium.version)
           git commit -m "chore: update helium (linux: $LINUX_V, macos: $DARWIN_V) and update flake.lock"
           # Reject a concurrent branch change rather than publishing an untested merge.
           git push origin "HEAD:$TARGET_REF"
