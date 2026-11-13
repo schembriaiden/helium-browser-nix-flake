@@ -34,18 +34,18 @@ jobs:
             runner: macos-15
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
       - name: Download candidate update
         if: inputs.source-artifact != ''
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8.0.2
         with:
           name: ${{ inputs.source-artifact }}
 
       - name: Install Nix
-        uses: cachix/install-nix-action@v31.9.0
+        uses: cachix/install-nix-action@v31.11.5
 
       - name: Verify flake
         run: nix flake check --no-update-lock-file
